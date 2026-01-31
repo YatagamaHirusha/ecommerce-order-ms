@@ -31,17 +31,28 @@ const ProductList = () => {
         }),
       });
 
-      const data = await response.text();
+      // Try to parse as JSON first, fallback to text
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
 
       if (response.ok) {
+        // Handle both string and object responses
+        const message = typeof data === 'string' ? data : (data.message || 'Order Placed Successfully');
         setNotification({
           type: 'success',
-          message: data || 'Order Placed Successfully',
+          message: message,
         });
       } else {
+        // Handle both string and object responses
+        const message = typeof data === 'string' ? data : (data.message || data.error || 'Failed to place order');
         setNotification({
           type: 'error',
-          message: data || 'Failed to place order',
+          message: message,
         });
       }
     } catch (error) {
